@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#3a2e26" />
+<title>Daily Gut Check</title>
+<style>
+  :root {
+    --bg: #f7f3ee;
+    --surface: #ffffff;
+    --surface-2: #fbf6f0;
+    --ink: #2a221c;
+    --ink-soft: #6b5e54;
+    --line: #ece3d8;
+    --accent: #7a5c3e;
+    --accent-soft: #efe2d1;
+    --good: #4f7a3a;
+    --warn: #c08a2c;
+    --bad: #b3553a;
+    --radius: 16px;
+    --shadow: 0 1px 2px rgba(40,30,20,.04), 0 8px 24px rgba(40,30,20,.06);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 24px);
+    max-width: 540px;
+    margin: 0 auto;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 4px 12px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: linear-gradient(135deg, #8c6a47, #5a4029);
+    display: grid; place-items: center; color: white; font-weight: 700;
+  }
+  .brand h1 { font-size: 17px; margin: 0; letter-spacing: -.01em; }
+  .brand .sub { color: var(--ink-soft); font-size: 12px; margin-top: 2px; }
+  .icon-btn {
+    background: var(--surface); border: 1px solid var(--line);
+    width: 36px; height: 36px; border-radius: 12px;
+    display: grid; place-items: center; cursor: pointer; color: var(--ink);
+  }
+  .icon-btn:hover { background: var(--surface-2); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+
+  .today {
+    background: linear-gradient(180deg, #fffaf3, #ffffff);
+  }
+  .today .date { font-size: 12px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .08em; }
+  .today h2 { margin: 4px 0 6px; font-size: 22px; letter-spacing: -.02em; }
+  .today p { margin: 0 0 14px; color: var(--ink-soft); font-size: 14px; line-height: 1.45; }
+
+  .cta-row { display: flex; gap: 10px; }
+  .btn {
+    border: none; cursor: pointer; font: inherit;
+    padding: 14px 16px; border-radius: 12px;
+    font-weight: 600; font-size: 15px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform .05s ease, background .15s ease, border-color .15s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--ink); color: white; flex: 1; }
+  .btn-primary:hover { background: #1a140f; }
+  .btn-secondary { background: var(--surface); color: var(--ink); border: 1px solid var(--line); flex: 1; }
+  .btn-secondary:hover { background: var(--surface-2); }
+  .btn-ghost { background: transparent; color: var(--ink-soft); padding: 8px 10px; }
+  .btn[disabled] { opacity: .55; cursor: not-allowed; }
+
+  input[type=file] { display: none; }
+
+  .preview-wrap {
+    position: relative;
+    border-radius: 12px; overflow: hidden;
+    background: var(--surface-2); border: 1px solid var(--line);
+    margin-bottom: 12px;
+    aspect-ratio: 4 / 3;
+    display: grid; place-items: center;
+  }
+  .preview-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .preview-empty { color: var(--ink-soft); font-size: 13px; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 4px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 600;
+  }
+  .pill.good { background: #e3efd6; color: var(--good); }
+  .pill.warn { background: #f6e6c4; color: var(--warn); }
+  .pill.bad  { background: #f4d6cc; color: var(--bad); }
+
+  .analysis h3 { margin: 0 0 4px; font-size: 18px; letter-spacing: -.01em; }
+  .analysis .lead { color: var(--ink-soft); font-size: 14px; margin: 0 0 14px; }
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .metric {
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 12px; padding: 10px 12px;
+  }
+  .metric .label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); }
+  .metric .value { font-weight: 600; margin-top: 2px; font-size: 14px; }
+
+  .section-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--ink-soft); margin: 18px 4px 8px;
+  }
+
+  .notes p { margin: 0 0 8px; font-size: 14px; line-height: 1.55; }
+  .notes p:last-child { margin-bottom: 0; }
+
+  .observations { list-style: none; margin: 0; padding: 0; }
+  .observations li {
+    padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 10px; margin-bottom: 6px; font-size: 14px; line-height: 1.45;
+  }
+
+  .disclaimer {
+    background: #fff8ec; border: 1px solid #f1e1c2;
+    color: #6a4f1c; font-size: 12px; line-height: 1.5;
+    border-radius: 10px; padding: 10px 12px; margin-top: 10px;
+  }
+
+  .history-item {
+    display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center;
+    padding: 10px; border-radius: 12px;
+    border: 1px solid var(--line); background: var(--surface);
+    margin-bottom: 8px; cursor: pointer;
+  }
+  .history-item:hover { background: var(--surface-2); }
+  .history-item .thumb {
+    width: 56px; height: 56px; border-radius: 10px; object-fit: cover;
+    background: var(--surface-2); border: 1px solid var(--line);
+  }
+  .history-item .meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .history-item .meta .day { font-weight: 600; font-size: 14px; }
+  .history-item .meta .summary { color: var(--ink-soft); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .history-empty { color: var(--ink-soft); font-size: 13px; text-align: center; padding: 16px; }
+
+  .spinner {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.4); border-top-color: white;
+    animation: spin .8s linear infinite;
+  }
+  .btn-secondary .spinner { border-color: rgba(0,0,0,.15); border-top-color: var(--ink); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(20,15,10,.4);
+    display: none; align-items: center; justify-content: center; z-index: 50;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: 16px; padding: 18px;
+    width: 100%; max-width: 420px; box-shadow: var(--shadow);
+  }
+  .modal h3 { margin: 0 0 6px; font-size: 17px; }
+  .modal p { color: var(--ink-soft); font-size: 13px; margin: 0 0 12px; line-height: 1.5; }
+  .modal input[type=password], .modal input[type=text] {
+    width: 100%; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--surface-2);
+    font: inherit; color: var(--ink);
+  }
+  .modal-actions { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: white; padding: 10px 14px; border-radius: 10px;
+    font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s ease;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-mark">gc</div>
+      <div>
+        <h1>Daily Gut Check</h1>
+        <div class="sub">Track digestion, spot patterns.</div>
+      </div>
+    </div>
+    <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </header>
+
+  <section class="card today">
+    <div class="date" id="todayDate"></div>
+    <h2 id="todayHeadline">Today's check-in</h2>
+    <p id="todaySub">Snap a quick photo of today's bowel movement. Claude will look at consistency, color, and texture, then suggest what it might mean.</p>
+
+    <div class="preview-wrap" id="previewWrap">
+      <span class="preview-empty">No photo yet</span>
+    </div>
+
+    <div class="cta-row">
+      <input type="file" id="fileInput" accept="image/*" capture="environment" />
+      <button class="btn btn-primary" id="captureBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span id="captureLabel">Take photo</span>
+      </button>
+      <button class="btn btn-secondary hidden" id="analyzeBtn">
+        <span id="analyzeLabel">Analyze</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="card analysis hidden" id="analysisCard">
+    <h3 id="analysisTitle">Today's analysis</h3>
+    <p class="lead" id="analysisLead"></p>
+
+    <div class="metric-grid">
+      <div class="metric"><div class="label">Bristol Scale</div><div class="value" id="metricBristol">—</div></div>
+      <div class="metric"><div class="label">Consistency</div><div class="value" id="metricConsistency">—</div></div>
+      <div class="metric"><div class="label">Color</div><div class="value" id="metricColor">—</div></div>
+      <div class="metric"><div class="label">Overall</div><div class="value" id="metricOverall">—</div></div>
+    </div>
+
+    <div class="section-title">What this might mean</div>
+    <div class="notes" id="notesBlock"></div>
+
+    <div class="section-title">Suggestions</div>
+    <ul class="observations" id="suggestionsBlock"></ul>
+
+    <div class="disclaimer">
+      Not medical advice. This is a wellness pattern-tracker — if you see blood, persistent black or pale stools, ongoing diarrhea or constipation, or any sudden change you can't explain, talk to a clinician.
+    </div>
+  </section>
+
+  <div class="section-title">History</div>
+  <div id="historyList"></div>
+
+  <!-- Settings modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <h3>Settings</h3>
+      <p>Your Anthropic API key is stored only in this browser's localStorage and sent directly to Anthropic when analyzing a photo. Get one at console.anthropic.com.</p>
+      <label style="font-size:12px; color: var(--ink-soft); display:block; margin-bottom:6px;">Anthropic API key</label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off" />
+      <label style="font-size:12px; color: var(--ink-soft); display:block; margin: 12px 0 6px;">Model</label>
+      <input type="text" id="modelInput" value="claude-sonnet-4-6" />
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="clearDataBtn">Clear history</button>
+        <button class="btn btn-secondary" id="closeSettingsBtn">Close</button>
+        <button class="btn btn-primary" id="saveSettingsBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   Daily Gut Check — single-file prototype
+   - Stores entries in localStorage under 'gutcheck.entries.v1'
+   - Calls Anthropic /v1/messages from the browser with the user's API key
+   ========================================================================= */
+
+const ENTRIES_KEY = 'gutcheck.entries.v1';
+const SETTINGS_KEY = 'gutcheck.settings.v1';
+
+const els = {
+  todayDate: document.getElementById('todayDate'),
+  todayHeadline: document.getElementById('todayHeadline'),
+  todaySub: document.getElementById('todaySub'),
+  previewWrap: document.getElementById('previewWrap'),
+  fileInput: document.getElementById('fileInput'),
+  captureBtn: document.getElementById('captureBtn'),
+  captureLabel: document.getElementById('captureLabel'),
+  analyzeBtn: document.getElementById('analyzeBtn'),
+  analyzeLabel: document.getElementById('analyzeLabel'),
+  analysisCard: document.getElementById('analysisCard'),
+  analysisTitle: document.getElementById('analysisTitle'),
+  analysisLead: document.getElementById('analysisLead'),
+  metricBristol: document.getElementById('metricBristol'),
+  metricConsistency: document.getElementById('metricConsistency'),
+  metricColor: document.getElementById('metricColor'),
+  metricOverall: document.getElementById('metricOverall'),
+  notesBlock: document.getElementById('notesBlock'),
+  suggestionsBlock: document.getElementById('suggestionsBlock'),
+  historyList: document.getElementById('historyList'),
+  settingsBtn: document.getElementById('settingsBtn'),
+  settingsModal: document.getElementById('settingsModal'),
+  apiKeyInput: document.getElementById('apiKeyInput'),
+  modelInput: document.getElementById('modelInput'),
+  saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+  closeSettingsBtn: document.getElementById('closeSettingsBtn'),
+  clearDataBtn: document.getElementById('clearDataBtn'),
+  toast: document.getElementById('toast'),
+};
+
+let state = {
+  imageDataUrl: null,   // base64 data URL of pending image
+  imageMediaType: null, // 'image/jpeg' etc
+};
+
+function loadSettings() {
+  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+
+function loadEntries() {
+  try { return JSON.parse(localStorage.getItem(ENTRIES_KEY)) || []; }
+  catch { return []; }
+}
+function saveEntries(entries) { localStorage.setItem(ENTRIES_KEY, JSON.stringify(entries)); }
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function formatLongDate(key) {
+  const [y,m,d] = key.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return dt.toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+}
+function formatShortDate(key) {
+  const [y,m,d] = key.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return dt.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
+}
+
+function toast(msg) {
+  els.toast.textContent = msg;
+  els.toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => els.toast.classList.remove('show'), 2400);
+}
+
+function setPreview(dataUrl) {
+  if (!dataUrl) {
+    els.previewWrap.innerHTML = '<span class="preview-empty">No photo yet</span>';
+    return;
+  }
+  els.previewWrap.innerHTML = '';
+  const img = document.createElement('img');
+  img.src = dataUrl;
+  img.alt = 'Today’s photo';
+  els.previewWrap.appendChild(img);
+}
+
+/* ---------- Image handling ---------- */
+
+async function fileToDownscaledDataUrl(file, maxDim = 1024, quality = 0.85) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = url;
+    });
+    let { width, height } = img;
+    const scale = Math.min(1, maxDim / Math.max(width, height));
+    width = Math.round(width * scale);
+    height = Math.round(height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, width, height);
+    return canvas.toDataURL('image/jpeg', quality);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+els.captureBtn.addEventListener('click', () => els.fileInput.click());
+els.fileInput.addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  try {
+    const dataUrl = await fileToDownscaledDataUrl(file);
+    state.imageDataUrl = dataUrl;
+    state.imageMediaType = 'image/jpeg';
+    setPreview(dataUrl);
+    els.captureLabel.textContent = 'Retake';
+    els.analyzeBtn.classList.remove('hidden');
+  } catch (err) {
+    console.error(err);
+    toast('Could not read that image');
+  } finally {
+    els.fileInput.value = '';
+  }
+});
+
+/* ---------- Claude Vision call ---------- */
+
+const SYSTEM_PROMPT = `You are a careful, plain-spoken wellness assistant that interprets photographs of human stool for an at-home digestion-tracking app.
+
+Your job for each image:
+1. If the image clearly does not show stool (e.g. food, animal, blank toilet), set "is_stool" to false and explain briefly in "lead". Skip the rest.
+2. Otherwise, classify on the Bristol Stool Scale (1–7):
+   1 = separate hard lumps (severe constipation)
+   2 = lumpy sausage (mild constipation)
+   3 = sausage with cracks (normal, slightly dry)
+   4 = smooth soft sausage / snake (ideal)
+   5 = soft blobs with clear-cut edges (lacking fiber)
+   6 = mushy, ragged edges (mild diarrhea)
+   7 = entirely liquid (severe diarrhea)
+3. Describe the dominant color in one or two words (e.g. "medium brown", "dark brown", "green-brown", "pale/clay", "yellow", "black/tarry", "red-tinged").
+4. Describe texture/consistency briefly.
+5. Give 2–4 short, neutral wellness notes about what this *might* indicate — hydration, fiber, transit speed, recent diet, possible bile/iron influence. Avoid alarming or diagnostic language; this is a pattern tracker, not a diagnosis.
+6. Give 2–3 concrete, gentle suggestions (hydration, fiber, fermented foods, movement, etc.).
+7. Flag a "concern_level" of "ok", "watch", or "see_a_clinician" — only use "see_a_clinician" if you see visible blood, black tar-like appearance, or pale/clay color, which can suggest issues that warrant a real check-up.
+
+Respond with ONLY a single JSON object, no prose before or after, no markdown fences. Schema:
+{
+  "is_stool": boolean,
+  "bristol": integer 1–7 or null,
+  "color": string,
+  "consistency": string,
+  "concern_level": "ok" | "watch" | "see_a_clinician",
+  "lead": string,                  // one-sentence summary the user sees first
+  "notes": [string, ...],          // 2–4 short paragraphs (1–2 sentences each)
+  "suggestions": [string, ...]     // 2–3 short suggestions
+}`;
+
+async function analyzeImage() {
+  const settings = loadSettings();
+  if (!settings.apiKey) {
+    openSettings();
+    toast('Add your Anthropic API key to analyze');
+    return;
+  }
+  if (!state.imageDataUrl) {
+    toast('Take a photo first');
+    return;
+  }
+
+  const model = settings.model || 'claude-sonnet-4-6';
+  const base64 = state.imageDataUrl.split(',')[1];
+
+  setAnalyzeLoading(true);
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': settings.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 800,
+        system: SYSTEM_PROMPT,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: state.imageMediaType || 'image/jpeg', data: base64 } },
+            { type: 'text', text: 'Here is today’s photo. Analyze per your instructions and reply with the JSON object only.' },
+          ],
+        }],
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('API error', res.status, text);
+      throw new Error(`Anthropic API ${res.status}: ${text.slice(0,200)}`);
+    }
+    const data = await res.json();
+    const textBlock = (data.content || []).find(b => b.type === 'text');
+    if (!textBlock) throw new Error('No text content in response');
+
+    const parsed = extractJson(textBlock.text);
+    if (!parsed) throw new Error('Could not parse JSON from model response');
+
+    const entry = {
+      id: crypto.randomUUID(),
+      date: todayKey(),
+      createdAt: Date.now(),
+      thumb: state.imageDataUrl,   // already downscaled
+      analysis: parsed,
+    };
+    upsertEntry(entry);
+    renderAnalysis(entry);
+    renderHistory();
+    renderTodayCard();
+    state.imageDataUrl = null;
+    state.imageMediaType = null;
+  } catch (err) {
+    console.error(err);
+    toast(err.message || 'Analysis failed');
+  } finally {
+    setAnalyzeLoading(false);
+  }
+}
+
+function extractJson(text) {
+  // Strip code fences if any
+  const cleaned = text.replace(/```json|```/g, '').trim();
+  // Find first { ... last }
+  const start = cleaned.indexOf('{');
+  const end = cleaned.lastIndexOf('}');
+  if (start === -1 || end === -1) return null;
+  try { return JSON.parse(cleaned.slice(start, end + 1)); }
+  catch { return null; }
+}
+
+function setAnalyzeLoading(loading) {
+  els.analyzeBtn.disabled = loading;
+  els.captureBtn.disabled = loading;
+  if (loading) {
+    els.analyzeLabel.innerHTML = '<span class="spinner"></span> Analyzing…';
+  } else {
+    els.analyzeLabel.textContent = 'Analyze';
+  }
+}
+
+els.analyzeBtn.addEventListener('click', analyzeImage);
+
+/* ---------- Rendering ---------- */
+
+function concernPill(level) {
+  if (level === 'see_a_clinician') return { cls: 'bad', label: 'Worth checking with a clinician' };
+  if (level === 'watch') return { cls: 'warn', label: 'Worth watching' };
+  return { cls: 'good', label: 'Looks healthy' };
+}
+
+function renderAnalysis(entry) {
+  const a = entry.analysis || {};
+  els.analysisCard.classList.remove('hidden');
+  els.analysisTitle.textContent = `Analysis · ${formatShortDate(entry.date)}`;
+
+  if (a.is_stool === false) {
+    els.analysisLead.textContent = a.lead || "That doesn't look like a stool photo — try again with a clearer shot.";
+    els.metricBristol.textContent = '—';
+    els.metricConsistency.textContent = '—';
+    els.metricColor.textContent = '—';
+    els.metricOverall.textContent = '—';
+    els.notesBlock.innerHTML = '';
+    els.suggestionsBlock.innerHTML = '';
+    return;
+  }
+
+  els.analysisLead.textContent = a.lead || '';
+  els.metricBristol.textContent = a.bristol ? `Type ${a.bristol}` : '—';
+  els.metricConsistency.textContent = a.consistency || '—';
+  els.metricColor.textContent = a.color || '—';
+  const c = concernPill(a.concern_level);
+  els.metricOverall.innerHTML = `<span class="pill ${c.cls}">${c.label}</span>`;
+
+  els.notesBlock.innerHTML = '';
+  (a.notes || []).forEach(n => {
+    const p = document.createElement('p');
+    p.textContent = n;
+    els.notesBlock.appendChild(p);
+  });
+
+  els.suggestionsBlock.innerHTML = '';
+  (a.suggestions || []).forEach(s => {
+    const li = document.createElement('li');
+    li.textContent = s;
+    els.suggestionsBlock.appendChild(li);
+  });
+}
+
+function renderTodayCard() {
+  const today = todayKey();
+  els.todayDate.textContent = formatLongDate(today);
+  const entries = loadEntries();
+  const todays = entries.find(e => e.date === today);
+  if (todays) {
+    els.todayHeadline.textContent = "Today's check-in is done";
+    els.todaySub.textContent = "Nice — you've logged today. You can retake if you want to update it.";
+    setPreview(todays.thumb);
+    els.captureLabel.textContent = 'Retake';
+    els.analyzeBtn.classList.add('hidden');
+    renderAnalysis(todays);
+  } else {
+    els.todayHeadline.textContent = "Today's check-in";
+    els.todaySub.textContent = "Snap a quick photo. Claude will look at consistency, color, and texture, then suggest what it might mean.";
+    setPreview(null);
+    els.captureLabel.textContent = 'Take photo';
+    els.analyzeBtn.classList.add('hidden');
+    els.analysisCard.classList.add('hidden');
+  }
+}
+
+function renderHistory() {
+  const entries = loadEntries().slice().sort((a,b) => b.createdAt - a.createdAt);
+  els.historyList.innerHTML = '';
+  if (entries.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'history-empty';
+    empty.textContent = 'Your past check-ins will appear here.';
+    els.historyList.appendChild(empty);
+    return;
+  }
+  entries.forEach(e => {
+    const a = e.analysis || {};
+    const c = concernPill(a.concern_level);
+    const row = document.createElement('div');
+    row.className = 'history-item';
+    row.innerHTML = `
+      <img class="thumb" alt="" src="${e.thumb}" />
+      <div class="meta">
+        <div class="day">${formatShortDate(e.date)}</div>
+        <div class="summary">${a.bristol ? `Type ${a.bristol} · ` : ''}${a.color || ''}${a.consistency ? ' · ' + a.consistency : ''}</div>
+      </div>
+      <span class="pill ${c.cls}">${a.concern_level === 'see_a_clinician' ? 'Check in' : (a.concern_level === 'watch' ? 'Watch' : 'OK')}</span>
+    `;
+    row.addEventListener('click', () => {
+      renderAnalysis(e);
+      window.scrollTo({ top: els.analysisCard.offsetTop - 16, behavior: 'smooth' });
+    });
+    els.historyList.appendChild(row);
+  });
+}
+
+function upsertEntry(entry) {
+  const entries = loadEntries();
+  const idx = entries.findIndex(e => e.date === entry.date);
+  if (idx >= 0) entries[idx] = entry;
+  else entries.push(entry);
+  saveEntries(entries);
+}
+
+/* ---------- Settings ---------- */
+
+function openSettings() {
+  const s = loadSettings();
+  els.apiKeyInput.value = s.apiKey || '';
+  els.modelInput.value = s.model || 'claude-sonnet-4-6';
+  els.settingsModal.classList.add('open');
+}
+function closeSettings() { els.settingsModal.classList.remove('open'); }
+
+els.settingsBtn.addEventListener('click', openSettings);
+els.closeSettingsBtn.addEventListener('click', closeSettings);
+els.saveSettingsBtn.addEventListener('click', () => {
+  saveSettings({ apiKey: els.apiKeyInput.value.trim(), model: els.modelInput.value.trim() || 'claude-sonnet-4-6' });
+  closeSettings();
+  toast('Settings saved');
+});
+els.clearDataBtn.addEventListener('click', () => {
+  if (!confirm('Delete all saved check-ins on this device?')) return;
+  localStorage.removeItem(ENTRIES_KEY);
+  renderHistory();
+  renderTodayCard();
+  els.analysisCard.classList.add('hidden');
+  toast('History cleared');
+});
+els.settingsModal.addEventListener('click', (e) => {
+  if (e.target === els.settingsModal) closeSettings();
+});
+
+/* ---------- Boot ---------- */
+
+renderTodayCard();
+renderHistory();
+
+// First-run nudge
+if (!loadSettings().apiKey) {
+  setTimeout(() => toast('Tap the gear to add your Anthropic API key'), 600);
+}
+</script>
+</body>
+</html>
